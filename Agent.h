@@ -31,6 +31,7 @@ public:
     void AddFrontier(list<Location> &locationList, const Location &location);
     bool WithinWorld(Location& location);
     void Output();
+    void FindPit();
     void FindWumpus();
     void PossibleWumpusLocation();
     void ResetSafeLocations();

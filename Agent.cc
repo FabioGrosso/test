@@ -37,8 +37,10 @@ void Agent::Initialize ()
             tmp.X = worldState.agentLocation.X;
             tmp.Y = worldState.agentLocation.Y - 1;
         }
-        AddLocation(pitLocations, tmp);
-        FilterFrontier();
+        if (!(tmp == Location(1, 0))) {
+            AddLocation(pitLocations, tmp);
+            FilterFrontier();
+        }
     }
     worldState.agentLocation = Location(1,1);
     worldState.agentOrientation = RIGHT;
@@ -310,6 +312,8 @@ void Agent::UpdateState (Percept& percept) {
     if (!percept.Breeze) {
         RemoveFrontier (worldState.agentLocation);
     }
+    // try to find pit by logic
+    FindPit();
     Output();
 }
 
@@ -363,6 +367,18 @@ Location Agent::UnvisitSafeLoction () {
     }
     return Location(0,0);
 }
+
+//Location Agent::ChooseFrontier() {
+//    for (list<Location>::iterator itr = frontier.begin(); itr != frontier.end(); ++itr) {
+//        Location location = *itr;
+//        // try to find a safe unvisited location within the world
+//        if (!InList (visitedLocations, location) && WithinWorld (location)) {
+//            cout << "tmp Location: (" << location.X << "," <<location.Y << ")\n";
+//            return location;
+//        }
+//    }
+//    return Location(0,0);
+//}
 
 // try to find a best frontier
 Location Agent::ChooseFrontier() {
@@ -450,6 +466,34 @@ void Agent::RemoveFrontier(Location& location) {
         Location location1 = *itr;
         if (location1 == loc1 || location1 == loc2 || location1 == loc3 || location1 == loc4) continue;
         frontier.push_back(location1);
+    }
+}
+
+void Agent::FindPit() {
+    for (list<Location>::iterator itr = visitedLocations.begin(); itr != visitedLocations.end(); ++itr) {
+        Location location = *itr;
+        if (InList(breezeLocations, location)) {
+            Location loc1 = Location(location.X, location.Y + 1);
+            Location loc2 = Location(location.X, location.Y - 1);
+            Location loc3 = Location(location.X + 1, location.Y);
+            Location loc4 = Location(location.X - 1, location.Y);
+            if ( (InList(safeLocations, loc1) || !WithinWorld(loc1)) && (InList(safeLocations, loc2) || !WithinWorld(loc2)) && (InList(safeLocations, loc3) || !WithinWorld(loc3))) {
+                AddLocation(pitLocations, loc4);
+                FilterFrontier();
+            }
+            else if ( (InList(safeLocations, loc1) || !WithinWorld(loc1)) && (InList(safeLocations, loc2) || !WithinWorld(loc2)) && (InList(safeLocations, loc4) || !WithinWorld(loc4))) {
+                AddLocation(pitLocations, loc3);
+                FilterFrontier();
+            }
+            else if ( (InList(safeLocations, loc1) || !WithinWorld(loc1)) && (InList(safeLocations, loc3) || !WithinWorld(loc3)) && (InList(safeLocations, loc4) || !WithinWorld(loc4))) {
+                AddLocation(pitLocations, loc2);
+                FilterFrontier();
+            }
+            else if ( (InList(safeLocations, loc2) || !WithinWorld(loc2)) && (InList(safeLocations, loc3) || !WithinWorld(loc3)) && (InList(safeLocations, loc4) || !WithinWorld(loc4))) {
+                AddLocation(pitLocations, loc1);
+                FilterFrontier();
+            }
+        }
     }
 }
 
@@ -549,7 +593,6 @@ bool Agent::WithinWorld (Location& location) {
     if ((worldSize > 0) && ((location.X > worldSize) || (location.Y > worldSize))) return false;
     return true;
 }
-
 
 void Agent::Output () {
     list<Location>::iterator itr;
