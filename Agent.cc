@@ -383,9 +383,13 @@ Location Agent::UnvisitSafeLoction () {
 // try to find a best frontier
 Location Agent::ChooseFrontier() {
     list<int> tmplist;
+    list<int> sumlist;
     tmplist.clear();
     int tmp;
+    int sum;
     int maxTmp;
+    int maxSum;
+    sumlist.clear();
     for (list<Location>::iterator itr = frontier.begin(); itr != frontier.end(); ++itr) {
         Location location = *itr;
         tmp = abs(location.X - location.Y);
@@ -393,9 +397,23 @@ Location Agent::ChooseFrontier() {
     }
     tmplist.sort();
     maxTmp = tmplist.back();
+    list<Location> tmpLocations;
     for (list<Location>::iterator itr = frontier.begin(); itr != frontier.end(); ++itr) {
+        Location location1 = *itr;
+        if (abs(location1.X - location1.Y) == maxTmp) {
+            tmpLocations.push_back(location1);
+        }
+    }
+    for (list<Location>::iterator itr = tmpLocations.begin(); itr != tmpLocations.end(); ++itr) {
         Location location = *itr;
-        if (abs(location.X - location.Y) == maxTmp) {
+        sum = location.X + location.Y;
+        sumlist.push_back(sum);
+    }
+    sumlist.sort();
+    maxSum = sumlist.back();
+    for (list<Location>::iterator itr = tmpLocations.begin(); itr != tmpLocations.end(); ++itr) {
+        Location location = *itr;
+        if (location.X + location.Y == maxSum) {
             cout << "tmp unsafe Location: (" << location.X << "," <<location.Y << ")\n";
             return location;
         }
